@@ -8,52 +8,88 @@ class QRCodeGenerator:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("QR Code Generator")
-        self.root.geometry("600x400")
-        self.root.resizable(False, False)
-        self.root.configure(bg="#f0f2f5")
+        # Set minimum window size
+        self.root.minsize(500, 600)
+        # Set initial window size
+        self.root.geometry("500x600")
+        # Allow window resizing
+        self.root.resizable(True, True)
         
-        # Configure styles
+        # Configure grid weights for responsive layout
+        self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_rowconfigure(2, weight=1)
+        
+        # Create modern style
         self.setup_styles()
         
-        # Setup UI components
+        # Create UI
         self.create_ui()
         
-        # Preview image holder
+        # Initialize preview image
         self.preview_image = None
         
     def setup_styles(self):
         self.style = ttk.Style()
-        self.style.theme_use('clam')
         
-        # Configure common styles
+        # Configure colors
+        bg_color = "#ffffff"
+        accent_color = "#1976D2"
+        self.root.configure(bg=bg_color)
+        
+        # Style for main frame
+        self.style.configure("Main.TFrame", background=bg_color)
+        
+        # Style for labels
         self.style.configure(
             "TLabel",
-            font=("Segoe UI", 11),
-            background="#f0f2f5"
+            background=bg_color,
+            font=("Segoe UI", 10)
         )
+        
+        # Style for header
         self.style.configure(
             "Header.TLabel",
-            font=("Segoe UI", 16, "bold"),
-            background="#1a73e8",
+            background=accent_color,
             foreground="white",
+            font=("Segoe UI", 16, "bold"),
             padding=10
         )
-        self.style.configure(
-            "Footer.TLabel",
-            font=("Segoe UI", 9),
-            background="#f0f2f5",
-            foreground="#666666"
-        )
+        
+        # Style for buttons
         self.style.configure(
             "TButton",
-            font=("Segoe UI", 11),
+            font=("Segoe UI", 10),
             padding=5
         )
+        
+        # Special style for generate button
         self.style.configure(
             "Generate.TButton",
             font=("Segoe UI", 11, "bold"),
-            background="#1a73e8",
-            foreground="white"
+            padding=10
+        )
+        
+        # Style for entry fields
+        self.style.configure(
+            "TEntry",
+            padding=5
+        )
+        
+        # Style for combobox
+        self.style.configure(
+            "TCombobox",
+            padding=5
+        )
+        
+        # Style for labelframe
+        self.style.configure(
+            "TLabelframe",
+            background=bg_color
+        )
+        self.style.configure(
+            "TLabelframe.Label",
+            background=bg_color,
+            font=("Segoe UI", 10, "bold")
         )
 
     def create_ui(self):
@@ -64,37 +100,42 @@ class QRCodeGenerator:
             style="Header.TLabel",
             anchor="center"
         )
-        header.grid(row=0, column=0, columnspan=3, sticky="ew")
+        header.grid(row=0, column=0, sticky="ew", padx=0, pady=(0, 20))
 
         # Main content frame
-        main_frame = ttk.Frame(self.root, padding=20)
-        main_frame.grid(row=1, column=0, sticky="nsew")
-        main_frame.configure(style="Main.TFrame")
+        main_frame = ttk.Frame(self.root, padding=20, style="Main.TFrame")
+        main_frame.grid(row=1, column=0, sticky="nsew", padx=20)
+        main_frame.grid_columnconfigure(0, weight=1)
 
         # Data input
         ttk.Label(main_frame, text="Enter Data:").grid(
             row=0, column=0, sticky="w", pady=(0, 5)
         )
-        self.data_entry = ttk.Entry(main_frame, width=50)
-        self.data_entry.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        self.data_entry = ttk.Entry(main_frame)
+        self.data_entry.grid(row=1, column=0, columnspan=3, sticky="ew", pady=(0, 20))
 
-        # QR Code settings frame
-        settings_frame = ttk.LabelFrame(main_frame, text="QR Code Settings", padding=10)
-        settings_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 15))
+        # Settings frame
+        settings_frame = ttk.LabelFrame(
+            main_frame,
+            text="QR Code Settings",
+            padding=15
+        )
+        settings_frame.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0, 20))
+        settings_frame.grid_columnconfigure(1, weight=1)
 
         # File name input
         ttk.Label(settings_frame, text="Save As:").grid(
             row=0, column=0, sticky="w", pady=5
         )
-        self.filename_entry = ttk.Entry(settings_frame, width=35)
-        self.filename_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.filename_entry = ttk.Entry(settings_frame)
+        self.filename_entry.grid(row=0, column=1, sticky="ew", padx=5)
         
-        # Browse button
-        ttk.Button(
+        browse_btn = ttk.Button(
             settings_frame,
             text="Browse",
             command=self.browse_file
-        ).grid(row=0, column=2, padx=5, pady=5)
+        )
+        browse_btn.grid(row=0, column=2, padx=(5, 0))
 
         # Error correction level
         ttk.Label(settings_frame, text="Error Correction:").grid(
@@ -103,8 +144,7 @@ class QRCodeGenerator:
         self.error_level = ttk.Combobox(
             settings_frame,
             values=["Low", "Medium", "Quartile", "High"],
-            state="readonly",
-            width=15
+            state="readonly"
         )
         self.error_level.set("High")
         self.error_level.grid(row=1, column=1, sticky="w", pady=5)
@@ -116,19 +156,20 @@ class QRCodeGenerator:
             command=self.generate_qrcode,
             style="Generate.TButton"
         )
-        generate_btn.grid(row=3, column=0, columnspan=2, pady=15)
+        generate_btn.grid(row=3, column=0, columnspan=3, pady=20)
 
         # Preview frame
-        self.preview_label = ttk.Label(main_frame, text="Preview will appear here")
-        self.preview_label.grid(row=4, column=0, columnspan=2, pady=10)
-
-        # Footer
-        footer = ttk.Label(
+        preview_frame = ttk.LabelFrame(
             self.root,
-            text="Developed with ❤️ using Python | v1.1",
-            style="Footer.TLabel"
+            text="Preview",
+            padding=15
         )
-        footer.grid(row=2, column=0, columnspan=3, pady=10)
+        preview_frame.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
+        preview_frame.grid_columnconfigure(0, weight=1)
+        preview_frame.grid_rowconfigure(0, weight=1)
+
+        self.preview_label = ttk.Label(preview_frame, text="QR code preview will appear here")
+        self.preview_label.grid(row=0, column=0, sticky="nsew")
 
     def browse_file(self):
         filename = filedialog.asksaveasfilename(
@@ -144,7 +185,6 @@ class QRCodeGenerator:
         data = self.data_entry.get().strip()
         filename = self.filename_entry.get().strip()
 
-        # Validation
         if not data:
             messagebox.showerror("Error", "Please enter data for the QR code!")
             return
@@ -155,7 +195,6 @@ class QRCodeGenerator:
             filename += ".png"
 
         try:
-            # Error correction mapping
             error_levels = {
                 "Low": qrcode.constants.ERROR_CORRECT_L,
                 "Medium": qrcode.constants.ERROR_CORRECT_M,
@@ -163,7 +202,6 @@ class QRCodeGenerator:
                 "High": qrcode.constants.ERROR_CORRECT_H
             }
 
-            # Generate QR code
             qr = qrcode.QRCode(
                 version=1,
                 error_correction=error_levels[self.error_level.get()],
@@ -176,14 +214,14 @@ class QRCodeGenerator:
             img = qr.make_image(fill_color="black", back_color="white")
             img.save(filename)
 
-            # Show preview
-            preview_size = (150, 150)
+            # Update preview
+            preview_size = (200, 200)
             preview = img.copy()
             preview.thumbnail(preview_size)
             photo = ImageTk.PhotoImage(preview)
             
             self.preview_label.configure(image=photo, text="")
-            self.preview_label.image = photo  # Keep a reference
+            self.preview_label.image = photo
 
             messagebox.showinfo(
                 "Success",
